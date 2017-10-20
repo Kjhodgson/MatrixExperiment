@@ -57,27 +57,32 @@
                 Console.WriteLine("Printing Array..\n");
                 PrintArray(array);
                 var sw = new Stopwatch();
+                Task[] tasks = new Task[numOfWorkers];
 
                 //sw.Start();
                
                 for (int worker = 0; worker < numOfWorkers; worker++)
                 {
-                    int rowsToCompute = NUMROWS / numOfWorkers;
-                    int rowsUpperBound = (worker + 1) * rowsToCompute;
-                    int rowsLowerBound = worker * rowsToCompute;
-
-                    Console.WriteLine("\nSending work to the worker.");
-
-                    // This will go through the array and send the work to the workers.
-                    for (int i = rowsLowerBound; i < rowsUpperBound; i++)
+                    int theWorker = worker;
+                    tasks[theWorker] = Task.Factory.StartNew(() =>
                     {
-                        for (int j = 0; j < NUMCOLS; j++)
+                        int rowsToCompute = NUMROWS / numOfWorkers;
+                        int rowsUpperBound = (theWorker + 1) * rowsToCompute;
+                        int rowsLowerBound = theWorker * rowsToCompute;
+
+                        Console.WriteLine("\nSending work to the worker.");
+
+                        // This will go through the array and send the work to the workers.
+                        for (int i = rowsLowerBound; i < rowsUpperBound; i++)
                         {
-                            SendWork(worker, i, j);                            
+                            for (int j = 0; j < NUMCOLS; j++)
+                            {
+                                SendWork(theWorker, i, j);
+                            }
                         }
-                    }
-                                     
+                    });                   
                 }
+                Task.WaitAll(tasks);
                 Console.WriteLine("The Following array is the completed array:\n");
 
                 PrintArray(completedArray);
