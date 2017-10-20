@@ -7,7 +7,7 @@
     using System.Net.Sockets;
     using System.Xml.Serialization;
 
-    public class client
+    public class Client
     {
         public static void Main()
         {
@@ -54,7 +54,7 @@
                     Console.WriteLine("\nNow transmitting results back to master...");
 
                     stm.Write(result,0,1);                   
-                } while (true);
+                } while (true); //For now the worker will work until death
 
                 tcpclnt.Close();
                 Console.WriteLine("The program has finished, please press a key to exit.");
@@ -77,6 +77,7 @@
                 sum1 += byteArray1[i];
                 sum2 += byteArray2[i];
             }
+            Console.WriteLine("Calculated: " + (byte)(sum1 * sum2));
             return (byte)(sum1 * sum2);
         }
     }
