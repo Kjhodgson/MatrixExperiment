@@ -23,37 +23,51 @@
 
                 byte[] byteArray1;
                 byte[] byteArray2;
-                byte[] result = new byte[1];
+                int[] intArray1;
+                int[] intArray2;
+                int result;
+                int i = 0;
                 // Do-while loop used for the continous flow of work and calculations.
                 do
                 {
                     Console.WriteLine("Connected");
                     Console.Write("Waiting for Arrays to work on.. ");
 
-                    byteArray1 = new byte[100];
-                    byteArray2 = new byte[100];
-                    stm.Read(byteArray1, 0, 100);
-                    stm.Read(byteArray2, 0, 100);
+                    byteArray1 = new byte[4];
+                    byteArray2 = new byte[4];
+                    intArray1 = new int[800];
+                    intArray2 = new int[800];
+
+                    for (i = 0; i < intArray1.Length; i++)
+                    {
+                        stm.Read(byteArray1, 0, byteArray1.Length);
+                        intArray1[i] = BitConverter.ToInt32(byteArray1, 0);
+                    }
+                    for (i = 0; i < intArray1.Length; i++)
+                    {
+                        stm.Read(byteArray2, 0, 4);
+                        intArray2[i] = BitConverter.ToInt32(byteArray2, 0);
+                    }
                     Console.WriteLine("Received array.. beginning calculations...");
 
-                    Console.WriteLine("\nThe first array is as follows: \n");
-                    for (int i = 0; i < byteArray1.Length; i++)
-                    {
-                        Console.Write(" " + byteArray1[i]);
-                    }
+                    //Console.WriteLine("\nThe first array is as follows: \n");
+                    //for (i = 0; i < intArray1.Length; i++)
+                    //{
+                        //Console.Write(" " + intArray1[i]);
+                    //}
 
-                    Console.WriteLine("\nThe Second array is as follows: \n");
-                    for (int i = 0; i < byteArray1.Length; i++)
-                    {
-                        Console.Write(" " + byteArray2[i]);
-                    }
+                    //Console.WriteLine("\nThe Second array is as follows: \n");
+                    //for (i = 0; i < intArray1.Length; i++)
+                    //{
+                        //Console.Write(" " + intArray2[i]);
+                    //}
 
-                    Console.WriteLine("\n\nNow beginning matrix calculation with the two give arrays..");
-                    result[0] = matrixCalculation(byteArray1, byteArray2);
-                    Console.WriteLine("The calculation has finished.");
-                    Console.WriteLine("\nNow transmitting results back to master...");
+                    //Console.WriteLine("\n\nNow beginning matrix calculation with the two give arrays..");
+                    result = matrixCalculation(intArray1, intArray2);
+                    //Console.WriteLine("The calculation has finished.");
+                    //Console.WriteLine("\nNow transmitting results back to master...");
 
-                    stm.Write(result,0,1);                   
+                    stm.Write(BitConverter.GetBytes(result),0,4);                   
                 } while (true); //For now the worker will work until death
 
                 tcpclnt.Close();
@@ -67,18 +81,19 @@
             }
         }
 
-        private static byte matrixCalculation(byte[] byteArray1, byte[] byteArray2)
+        private static int matrixCalculation(int[] array1, int[] array2)
         {
             int sum1 = 0;
             int sum2 = 0;
 
-            for(int i = 0; i < byteArray1.Length; i++)
+            for(int i = 0; i < array1.Length; i++)
             {
-                sum1 += byteArray1[i];
-                sum2 += byteArray2[i];
+                sum1 += array1[i];
+                sum2 += array2[i];
             }
-            Console.WriteLine("Calculated: " + (byte)(sum1 * sum2));
-            return (byte)(sum1 * sum2);
+            //Console.WriteLine("Calculated: " + (byte)(sum1 * sum2));
+            //Console.WriteLine("The result is: " + (sum1 * sum2));
+            return (sum1 * sum2);
         }
     }
 }

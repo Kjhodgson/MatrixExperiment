@@ -10,10 +10,10 @@
 
     public class Server
     {
-        private static int NUMROWS = 100;
-        private static int NUMCOLS = 100;
-        private static byte[,] array;
-        private static byte[,] completedArray;
+        private static int NUMROWS = 800;
+        private static int NUMCOLS = 800;
+        private static int[,] array;
+        private static int[,] completedArray;
 
         private static int numOfWorkers = 2;
         private static Socket[] mySocketArray = new Socket[numOfWorkers];
@@ -42,24 +42,24 @@
 
                 Random rand = new Random();
                 
-                array = new byte[NUMROWS, NUMCOLS];
-                completedArray = new byte[NUMROWS, NUMCOLS];
+                array = new int[NUMROWS, NUMCOLS];
+                completedArray = new int[NUMROWS, NUMCOLS];
                 for (int i = 0; i < NUMROWS; i++)
                 {           
                     for (int j = 0; j < NUMCOLS; j++)
                     {
-                        array[i,j] = Convert.ToByte(rand.Next(1, 3));
+                        array[i,j] = rand.Next(1, 4);
                     }
                     
                 }
 
-                Console.WriteLine("Created.");
-                Console.WriteLine("Printing Array..\n");
-                PrintArray(array);
+                //Console.WriteLine("Created.");
+                //Console.WriteLine("Printing Array..\n");
+                //PrintArray(array);
                 var sw = new Stopwatch();
                 Task[] tasks = new Task[numOfWorkers];
 
-                //sw.Start();
+                sw.Start();
                
                 for (int worker = 0; worker < numOfWorkers; worker++)
                 {
@@ -85,12 +85,12 @@
                 Task.WaitAll(tasks);
                 Console.WriteLine("The Following array is the completed array:\n");
 
-                PrintArray(completedArray);
+                //PrintArray(completedArray);
 
-                //sw.Stop();
-                //Console.WriteLine("\nThe calculation took {0} (ms)", sw.ElapsedMilliseconds);
-                //decimal timeSeconds = decimal.Divide((decimal)sw.ElapsedMilliseconds, (decimal)1000);
-                //Console.WriteLine("Time in seconds: {0}", timeSeconds);
+                sw.Stop();
+                Console.WriteLine("\nThe calculation took {0} (ms)", sw.ElapsedMilliseconds);
+                decimal timeSeconds = decimal.Divide((decimal)sw.ElapsedMilliseconds, (decimal)1000);
+                Console.WriteLine("Time in seconds: {0}", timeSeconds);
 
                 Console.WriteLine("\nThe program has finished, please press a key to exit.");
                 Console.ReadKey();
@@ -102,40 +102,38 @@
             }
         }
 
-        public static void SendWork(int worker, int Row, int Col)
+        public static void SendWork(int worker, int row, int col)
         {
-            Console.WriteLine("Sending work to the worker(s)...");
-            Console.WriteLine("The current Row and Col are:" + Row + " " + Col);
-            byte[] byteArrayRow = new byte[NUMROWS];
-            byte[] byteArrayCol = new byte[NUMCOLS];
+            //Console.WriteLine("Sending work to the worker(s)...");
+            //Console.WriteLine("The current Row and Col are:" + row + " " + col);
+
+            int[] ArrayRow = new int[NUMROWS];
+            int[] ArrayCol = new int[NUMCOLS];
             
             for (int i = 0; i < NUMROWS; i++)
             {
-                byteArrayCol[i] = array[i, Col];
+               // Console.WriteLine("Sending this row number to worker " +worker + ": " +  array[i, col]);
+                mySocketArray[worker].Send(BitConverter.GetBytes(array[i, col]));
+                //Console.WriteLine("Worker " + worker + " should have recieved: " + BitConverter.ToInt32(test, 0));
             }
             for (int j = 0; j < NUMCOLS; j++)
             {
-                byteArrayRow[j] = array[Row, j];
+                mySocketArray[worker].Send(BitConverter.GetBytes(array[row, j]));
             }
-            Console.WriteLine("Did I get here....");
-            mySocketArray[worker].Send(byteArrayRow);
-            mySocketArray[worker].Send(byteArrayCol);
 
-            Console.WriteLine("Waiting to recieve completed work....");
+            //Console.WriteLine("Waiting to recieve completed work....");
 
-            byte[] result = new byte[1];
-            mySocketArray[worker].Receive(result);
-            Console.WriteLine("Received: " + result[0] + "\n");
+            byte[] byteResult = new byte[4];
+            mySocketArray[worker].Receive(byteResult);
+            int result = BitConverter.ToInt32(byteResult, 0);
+            //Console.WriteLine("Received: " + result + "\n");
 
-            completedArray[Row, Col] = result[0];
+            completedArray[row, col] = result;
 
-            Console.WriteLine("This unit of work has been completed.\n");
-
-            //timer to see if array is being populated properly.
-            //System.Threading.Thread.Sleep(5000);
+            //Console.WriteLine("This unit of work has been completed.\n");
         }
 
-        private static void PrintArray(byte[,] array)
+        private static void PrintArray(int[,] array)
         {
             //prints the array 
             for (int i = 0; i < NUMROWS; i++)
