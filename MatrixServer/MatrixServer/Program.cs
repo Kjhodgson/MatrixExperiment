@@ -22,7 +22,7 @@
         {
             try
             {
-                IPAddress ipAd = IPAddress.Parse("10.20.133.186");
+                IPAddress ipAd = IPAddress.Parse("10.20.143.110");
 
                 TcpListener myListener = new TcpListener(ipAd, 8002);                
 

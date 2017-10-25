@@ -17,7 +17,7 @@
                 TcpClient tcpclnt = new TcpClient();
                 Console.WriteLine("Connecting.....");
 
-                tcpclnt.Connect("10.20.133.186", 8002);
+                tcpclnt.Connect("10.20.143.110", 8002);
                 Stream stm = tcpclnt.GetStream();
 
 
