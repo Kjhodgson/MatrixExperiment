@@ -36,65 +36,70 @@
                     mySocketArray[i] = myListener.AcceptSocket();
                     Console.WriteLine("Connection accepted from " + mySocketArray[i].RemoteEndPoint);
                     Console.WriteLine("Waiting for another connection...");
-                }               
-
-                Console.WriteLine("Creating the Array to be calculated....");
-
-                Random rand = new Random();
-                
-                array = new int[NUMROWS, NUMCOLS];
-                completedArray = new int[NUMROWS, NUMCOLS];
-                for (int i = 0; i < NUMROWS; i++)
-                {           
-                    for (int j = 0; j < NUMCOLS; j++)
-                    {
-                        array[i,j] = rand.Next(1, 4);
-                    }
-                    
                 }
 
-                //Console.WriteLine("Created.");
-                //Console.WriteLine("Printing Array..\n");
-                //PrintArray(array);
-                var sw = new Stopwatch();
-                Task[] tasks = new Task[numOfWorkers];
-
-                sw.Start();
-               
-                for (int worker = 0; worker < numOfWorkers; worker++)
+                // Will calculate 100 arrays.
+                int count = 0;
+                do
                 {
-                    int theWorker = worker;
-                    tasks[theWorker] = Task.Factory.StartNew(() =>
+                    Console.WriteLine("Creating the Array to be calculated....");
+
+                    Random rand = new Random();
+
+                    array = new int[NUMROWS, NUMCOLS];
+                    completedArray = new int[NUMROWS, NUMCOLS];
+                    for (int i = 0; i < NUMROWS; i++)
                     {
-                        int rowsToCompute = NUMROWS / numOfWorkers;
-                        int rowsUpperBound = (theWorker + 1) * rowsToCompute;
-                        int rowsLowerBound = theWorker * rowsToCompute;
-
-                        Console.WriteLine("\nSending work to the worker.");
-
-                        // This will go through the array and send the work to the workers.
-                        for (int i = rowsLowerBound; i < rowsUpperBound; i++)
+                        for (int j = 0; j < NUMCOLS; j++)
                         {
-                            for (int j = 0; j < NUMCOLS; j++)
-                            {
-                                SendWork(theWorker, i, j);
-                            }
+                            array[i, j] = rand.Next(1, 4);
                         }
-                    });                   
-                }
-                Task.WaitAll(tasks);
-                Console.WriteLine("The Following array is the completed array:\n");
 
-                //PrintArray(completedArray);
+                    }
 
-                sw.Stop();
-                Console.WriteLine("\nThe calculation took {0} (ms)", sw.ElapsedMilliseconds);
-                decimal timeSeconds = decimal.Divide((decimal)sw.ElapsedMilliseconds, (decimal)1000);
-                Console.WriteLine("Time in seconds: {0}", timeSeconds);
+                    //Console.WriteLine("Created.");
+                    //Console.WriteLine("Printing Array..\n");
+                    //PrintArray(array);
+                    var sw = new Stopwatch();
+                    Task[] tasks = new Task[numOfWorkers];
 
+                    sw.Start();
+
+                    for (int worker = 0; worker < numOfWorkers; worker++)
+                    {
+                        int theWorker = worker;
+                        tasks[theWorker] = Task.Factory.StartNew(() =>
+                        {
+                            int rowsToCompute = NUMROWS / numOfWorkers;
+                            int rowsUpperBound = (theWorker + 1) * rowsToCompute;
+                            int rowsLowerBound = theWorker * rowsToCompute;
+
+                            Console.WriteLine("\nSending work to the worker.");
+
+                            // This will go through the array and send the work to the workers.
+                            for (int i = rowsLowerBound; i < rowsUpperBound; i++)
+                            {
+                                for (int j = 0; j < NUMCOLS; j++)
+                                {
+                                    SendWork(theWorker, i, j);
+                                }
+                            }
+                        });
+                    }
+                    Task.WaitAll(tasks);
+                    Console.WriteLine("The Following array is the completed array:\n");
+
+                    //PrintArray(completedArray);
+
+                    sw.Stop();
+                    Console.WriteLine("\nThe calculation took {0} (ms)", sw.ElapsedMilliseconds);
+                    decimal timeSeconds = decimal.Divide((decimal)sw.ElapsedMilliseconds, (decimal)1000);
+                    Console.WriteLine("Time in seconds: {0}", timeSeconds);
+                    count++;
+                    
+                } while (count != 100);
                 Console.WriteLine("\nThe program has finished, please press a key to exit.");
                 Console.ReadKey();
-
             }
             catch (Exception e)
             {
