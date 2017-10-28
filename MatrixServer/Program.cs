@@ -10,13 +10,15 @@
 
     public class Server
     {
-        private static int NUMROWS = 800;
-        private static int NUMCOLS = 800;
+        private const int SIZE = 40;
+        private const int NUM_MATRICES = 5;
+
         private static int[,] array;
         private static int[,] completedArray;
 
         private static int numOfWorkers;
         private static Socket[] mySocketArray;
+
 
         public static void Main(string[] args)
         {
@@ -36,17 +38,19 @@
             }
 
             int count = 0;
+            var totalsw = Stopwatch.StartNew();
+
             do
             {
                 //Console.WriteLine("Creating the Array to be calculated....");
 
                 Random rand = new Random();
 
-                array = new int[NUMROWS, NUMCOLS];
-                completedArray = new int[NUMROWS, NUMCOLS];
-                for (int i = 0; i < NUMROWS; i++)
+                array = new int[SIZE, SIZE];
+                completedArray = new int[SIZE, SIZE];
+                for (int i = 0; i < SIZE; i++)
                 {
-                    for (int j = 0; j < NUMCOLS; j++)
+                    for (int j = 0; j < SIZE; j++)
                     {
                         array[i, j] = rand.Next(1, 4);
                     }
@@ -57,6 +61,7 @@
                 //Console.WriteLine("Printing Array..\n");
                 //PrintArray(array);
                 var sw = new Stopwatch();
+
                 Task[] tasks = new Task[numOfWorkers];
 
                 sw.Start();
@@ -64,9 +69,9 @@
                 for (int worker = 0; worker < numOfWorkers; worker++)
                 {
                     int theWorker = worker;
-                    tasks[theWorker] = Task.Factory.StartNew(() =>
+                    tasks[theWorker] = Task.Factory.StartNew((Action)(() =>
                     {
-                        int rowsToCompute = NUMROWS / numOfWorkers;
+                        int rowsToCompute = Server.SIZE / numOfWorkers;
                         int rowsUpperBound = (theWorker + 1) * rowsToCompute;
                         int rowsLowerBound = theWorker * rowsToCompute;
 
@@ -74,13 +79,13 @@
 
                             // This will go through the array and send the work to the workers.
                             for (int i = rowsLowerBound; i < rowsUpperBound; i++)
-                        {
-                            for (int j = 0; j < NUMCOLS; j++)
                             {
-                                SendWork(theWorker, i, j);
+                                for (int j = 0; j < Server.SIZE; j++)
+                                {
+                                    SendWork(theWorker, i, j);
+                                }
                             }
-                        }
-                    });
+                    }));
                 }
                 Task.WaitAll(tasks);
 
@@ -88,14 +93,20 @@
                 //PrintArray(completedArray);
 
                 sw.Stop();
-                Console.WriteLine("\nThe calculation took {0} (ms)", sw.ElapsedMilliseconds);
-                decimal timeSeconds = decimal.Divide((decimal)sw.ElapsedMilliseconds, (decimal)1000);
-                Console.WriteLine("Time in seconds: {0}", timeSeconds);
+                Console.WriteLine($"\nThe calculation took {sw.Elapsed}");
                 count++;
 
-            } while (count != 20);
-            Console.WriteLine("\nThe program has finished, please press a key to exit.");
-            Console.ReadKey();
+            } while (count != NUM_MATRICES);
+
+            totalsw.Stop();
+            foreach (var s in mySocketArray)
+            {
+                s.Disconnect(false);
+                s.Close();
+            }
+
+            Console.WriteLine("\nThe program has finished.");
+            Console.WriteLine($"\nThe total time for all matrices: {totalsw.Elapsed}");
         }
 
         public static void SendWork(int worker, int row, int col)
@@ -103,16 +114,16 @@
             //Console.WriteLine("Sending work to the worker(s)...");
             //Console.WriteLine("The current Row and Col are:" + row + " " + col);
 
-            int[] ArrayRow = new int[NUMROWS];
-            int[] ArrayCol = new int[NUMCOLS];
+            int[] ArrayRow = new int[SIZE];
+            int[] ArrayCol = new int[SIZE];
 
-            for (int i = 0; i < NUMROWS; i++)
+            for (int i = 0; i < SIZE; i++)
             {
                 // Console.WriteLine("Sending this row number to worker " +worker + ": " +  array[i, col]);
                 mySocketArray[worker].Send(BitConverter.GetBytes(array[i, col]));
                 //Console.WriteLine("Worker " + worker + " should have recieved: " + BitConverter.ToInt32(test, 0));
             }
-            for (int j = 0; j < NUMCOLS; j++)
+            for (int j = 0; j < SIZE; j++)
             {
                 mySocketArray[worker].Send(BitConverter.GetBytes(array[row, j]));
             }
@@ -132,9 +143,9 @@
         private static void PrintArray(int[,] array)
         {
             //prints the array 
-            for (int i = 0; i < NUMROWS; i++)
+            for (int i = 0; i < SIZE; i++)
             {
-                for (int j = 0; j < NUMCOLS; j++)
+                for (int j = 0; j < SIZE; j++)
                 {
                     Console.Write(string.Format("{0} ", array[i, j]));
                 }

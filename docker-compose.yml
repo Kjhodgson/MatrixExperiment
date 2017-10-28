@@ -1,0 +1,11 @@
+version: '2.2'
+services:
+  server:
+    image: kjhodgson/matrixexperiment:server
+    build: MatrixServer
+    command: "16"
+  client:
+    image: kjhodgson/matrixexperiment:client
+    build: MatrixClient
+    command: "server"
+    scale: 16

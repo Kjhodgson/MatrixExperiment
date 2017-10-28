@@ -6,6 +6,8 @@
     using System.Text;
     using System.Net.Sockets;
     using System.Xml.Serialization;
+    using System.Diagnostics;
+    using System.Threading;
 
     public class Client
     {
@@ -14,6 +16,8 @@
 
             TcpClient tcpclnt = new TcpClient();
             Console.WriteLine("Connecting.....");
+
+            Thread.Sleep(TimeSpan.FromSeconds(1));
 
             tcpclnt.Connect(args[0], 8002);
             Stream stm = tcpclnt.GetStream();
@@ -25,52 +29,78 @@
             int[] intArray2;
             int result;
             int i = 0;
+
+            int size = 40;
+
             Console.WriteLine("Connected");
             // Do-while loop used for the continous flow of work and calculations.
-            do
+            var iosw = new Stopwatch();
+            var procsw = new Stopwatch();
+
+            try
             {
-                Console.Write("Waiting for Arrays to work on.. ");
-
-                byteArray1 = new byte[4];
-                byteArray2 = new byte[4];
-                intArray1 = new int[800];
-                intArray2 = new int[800];
-
-                for (i = 0; i < intArray1.Length; i++)
+                do
                 {
-                    stm.Read(byteArray1, 0, byteArray1.Length);
-                    intArray1[i] = BitConverter.ToInt32(byteArray1, 0);
-                }
-                for (i = 0; i < intArray1.Length; i++)
-                {
-                    stm.Read(byteArray2, 0, 4);
-                    intArray2[i] = BitConverter.ToInt32(byteArray2, 0);
-                }
-                Console.WriteLine("Received array.. beginning calculations...");
+                    //Console.Write("Waiting for Arrays to work on.. ");
 
-                //Console.WriteLine("\nThe first array is as follows: \n");
-                //for (i = 0; i < intArray1.Length; i++)
-                //{
-                //Console.Write(" " + intArray1[i]);
-                //}
+                    byteArray1 = new byte[4];
+                    byteArray2 = new byte[4];
+                    intArray1 = new int[size];
+                    intArray2 = new int[size];
 
-                //Console.WriteLine("\nThe Second array is as follows: \n");
-                //for (i = 0; i < intArray1.Length; i++)
-                //{
-                //Console.Write(" " + intArray2[i]);
-                //}
+                    iosw.Start();
+                    for (i = 0; i < intArray1.Length; i++)
+                    {
+                        stm.Read(byteArray1, 0, byteArray1.Length);
+                        intArray1[i] = BitConverter.ToInt32(byteArray1, 0);
+                    }
+                    for (i = 0; i < intArray1.Length; i++)
+                    {
+                        stm.Read(byteArray2, 0, 4);
+                        intArray2[i] = BitConverter.ToInt32(byteArray2, 0);
+                    }
+                    iosw.Stop();
+                    //Console.WriteLine("Received array.. beginning calculations...");
 
-                //Console.WriteLine("\n\nNow beginning matrix calculation with the two give arrays..");
-                result = matrixCalculation(intArray1, intArray2);
-                //Console.WriteLine("The calculation has finished.");
-                //Console.WriteLine("\nNow transmitting results back to master...");
+                    //Console.WriteLine("\nThe first array is as follows: \n");
+                    //for (i = 0; i < intArray1.Length; i++)
+                    //{
+                    //Console.Write(" " + intArray1[i]);
+                    //}
 
-                stm.Write(BitConverter.GetBytes(result), 0, 4);
-            } while (tcpclnt.Connected); //For now the worker will work until death
+                    //Console.WriteLine("\nThe Second array is as follows: \n");
+                    //for (i = 0; i < intArray1.Length; i++)
+                    //{
+                    //Console.Write(" " + intArray2[i]);
+                    //}
 
-            tcpclnt.Close();
-            Console.WriteLine("The program has finished, please press a key to exit.");
-            Console.ReadKey();
+                    //Console.WriteLine("\n\nNow beginning matrix calculation with the two give arrays..");
+                    procsw.Start();
+                    result = matrixCalculation(intArray1, intArray2);
+                    procsw.Stop();
+
+                    //Console.WriteLine("The calculation has finished.");
+                    //Console.WriteLine("\nNow transmitting results back to master...");
+                    iosw.Start();
+                    stm.Write(BitConverter.GetBytes(result), 0, 4);
+                    iosw.Stop();
+                } while (true); //For now the worker will work until death
+            }
+            catch(IOException e)
+            {
+                //The connection has broken
+                iosw.Stop();
+                procsw.Stop();
+            }
+
+            //Console.WriteLine("The program has finished, please press a key to exit.");
+            //Console.ReadKey();
+
+            Console.WriteLine("Finished all work.");
+            Console.WriteLine($"Total time spent on IO: {iosw.Elapsed}");
+            Console.WriteLine($"Total time spent on Processing: {procsw.Elapsed}");
+
+
 
         }
 
