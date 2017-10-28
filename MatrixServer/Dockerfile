@@ -1,12 +1,12 @@
-FROM microsoft/netcore:2.0- sdk as build
+FROM microsoft/dotnet:2.0-sdk as build
 
 COPY . /src
-WORKDIR /src/
+WORKDIR /src
 RUN dotnet restore
-WORKDIR /src/MatrixServer
 RUN dotnet publish -c Release -o /publish
 
-FROM microsoft/netcore:2.0-runtime
+FROM microsoft/dotnet:2.0-runtime
 COPY --from=build /publish /app
 WORKDIR /app
+EXPOSE 8002
 ENTRYPOINT ["dotnet", "MatrixServer.dll"]

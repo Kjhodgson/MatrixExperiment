@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "MatrixServer": {
+      "commandName": "Project",
+      "commandLineArgs": "1"
+    }
+  }
+}

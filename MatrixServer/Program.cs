@@ -15,96 +15,87 @@
         private static int[,] array;
         private static int[,] completedArray;
 
-        private static int numOfWorkers = 2;
-        private static Socket[] mySocketArray = new Socket[numOfWorkers];
+        private static int numOfWorkers;
+        private static Socket[] mySocketArray;
 
-        public static void Main()
+        public static void Main(string[] args)
         {
-            try
+            numOfWorkers = int.Parse(args[0]);
+            TcpListener myListener = new TcpListener(IPAddress.Any, 8002);
+            mySocketArray = new Socket[numOfWorkers];
+
+            myListener.Start();
+            Console.WriteLine("The server is running on port 8002.....");
+            Console.WriteLine("The local End Point is :" + myListener.LocalEndpoint);
+
+            for (int i = 0; i < numOfWorkers; i++)
             {
-                IPAddress ipAd = IPAddress.Parse("10.20.143.110");
-
-                TcpListener myListener = new TcpListener(ipAd, 8002);                
-
-                myListener.Start();
-                Console.WriteLine("The server is running on port 8001.....");
-                Console.WriteLine("The local End Point is :" + myListener.LocalEndpoint);
                 Console.WriteLine("Waiting for a connection..");
-                
-                for (int i = 0; i < numOfWorkers; i++)
+                mySocketArray[i] = myListener.AcceptSocket();
+                Console.WriteLine("Connection accepted from " + mySocketArray[i].RemoteEndPoint);
+            }
+
+            int count = 0;
+            do
+            {
+                //Console.WriteLine("Creating the Array to be calculated....");
+
+                Random rand = new Random();
+
+                array = new int[NUMROWS, NUMCOLS];
+                completedArray = new int[NUMROWS, NUMCOLS];
+                for (int i = 0; i < NUMROWS; i++)
                 {
-                    mySocketArray[i] = myListener.AcceptSocket();
-                    Console.WriteLine("Connection accepted from " + mySocketArray[i].RemoteEndPoint);
-                    Console.WriteLine("Waiting for another connection...");
-                }
-
-                // Will calculate 100 arrays.
-                int count = 0;
-                do
-                {
-                    Console.WriteLine("Creating the Array to be calculated....");
-
-                    Random rand = new Random();
-
-                    array = new int[NUMROWS, NUMCOLS];
-                    completedArray = new int[NUMROWS, NUMCOLS];
-                    for (int i = 0; i < NUMROWS; i++)
+                    for (int j = 0; j < NUMCOLS; j++)
                     {
-                        for (int j = 0; j < NUMCOLS; j++)
-                        {
-                            array[i, j] = rand.Next(1, 4);
-                        }
-
+                        array[i, j] = rand.Next(1, 4);
                     }
 
-                    //Console.WriteLine("Created.");
-                    //Console.WriteLine("Printing Array..\n");
-                    //PrintArray(array);
-                    var sw = new Stopwatch();
-                    Task[] tasks = new Task[numOfWorkers];
+                }
 
-                    sw.Start();
+                //Console.WriteLine("Created.");
+                //Console.WriteLine("Printing Array..\n");
+                //PrintArray(array);
+                var sw = new Stopwatch();
+                Task[] tasks = new Task[numOfWorkers];
 
-                    for (int worker = 0; worker < numOfWorkers; worker++)
+                sw.Start();
+
+                for (int worker = 0; worker < numOfWorkers; worker++)
+                {
+                    int theWorker = worker;
+                    tasks[theWorker] = Task.Factory.StartNew(() =>
                     {
-                        int theWorker = worker;
-                        tasks[theWorker] = Task.Factory.StartNew(() =>
-                        {
-                            int rowsToCompute = NUMROWS / numOfWorkers;
-                            int rowsUpperBound = (theWorker + 1) * rowsToCompute;
-                            int rowsLowerBound = theWorker * rowsToCompute;
+                        int rowsToCompute = NUMROWS / numOfWorkers;
+                        int rowsUpperBound = (theWorker + 1) * rowsToCompute;
+                        int rowsLowerBound = theWorker * rowsToCompute;
 
-                            Console.WriteLine("\nSending work to the worker.");
+                            //Console.WriteLine("\nSending work to the worker.");
 
                             // This will go through the array and send the work to the workers.
                             for (int i = rowsLowerBound; i < rowsUpperBound; i++)
+                        {
+                            for (int j = 0; j < NUMCOLS; j++)
                             {
-                                for (int j = 0; j < NUMCOLS; j++)
-                                {
-                                    SendWork(theWorker, i, j);
-                                }
+                                SendWork(theWorker, i, j);
                             }
-                        });
-                    }
-                    Task.WaitAll(tasks);
-                    Console.WriteLine("The Following array is the completed array:\n");
+                        }
+                    });
+                }
+                Task.WaitAll(tasks);
 
-                    //PrintArray(completedArray);
+                //Console.WriteLine("The Following array is the completed array:\n");
+                //PrintArray(completedArray);
 
-                    sw.Stop();
-                    Console.WriteLine("\nThe calculation took {0} (ms)", sw.ElapsedMilliseconds);
-                    decimal timeSeconds = decimal.Divide((decimal)sw.ElapsedMilliseconds, (decimal)1000);
-                    Console.WriteLine("Time in seconds: {0}", timeSeconds);
-                    count++;
-                    
-                } while (count != 100);
-                Console.WriteLine("\nThe program has finished, please press a key to exit.");
-                Console.ReadKey();
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine("Error..... " + e.StackTrace);
-            }
+                sw.Stop();
+                Console.WriteLine("\nThe calculation took {0} (ms)", sw.ElapsedMilliseconds);
+                decimal timeSeconds = decimal.Divide((decimal)sw.ElapsedMilliseconds, (decimal)1000);
+                Console.WriteLine("Time in seconds: {0}", timeSeconds);
+                count++;
+
+            } while (count != 20);
+            Console.WriteLine("\nThe program has finished, please press a key to exit.");
+            Console.ReadKey();
         }
 
         public static void SendWork(int worker, int row, int col)
@@ -114,10 +105,10 @@
 
             int[] ArrayRow = new int[NUMROWS];
             int[] ArrayCol = new int[NUMCOLS];
-            
+
             for (int i = 0; i < NUMROWS; i++)
             {
-               // Console.WriteLine("Sending this row number to worker " +worker + ": " +  array[i, col]);
+                // Console.WriteLine("Sending this row number to worker " +worker + ": " +  array[i, col]);
                 mySocketArray[worker].Send(BitConverter.GetBytes(array[i, col]));
                 //Console.WriteLine("Worker " + worker + " should have recieved: " + BitConverter.ToInt32(test, 0));
             }

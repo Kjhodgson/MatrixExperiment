@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "MatrixClient": {
+      "commandName": "Project",
+      "commandLineArgs": "localhost"
+    }
+  }
+}
