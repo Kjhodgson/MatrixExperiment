@@ -10,7 +10,7 @@
 
     public class Server
     {
-        private const int SIZE = 40;
+        private const int SIZE = 200;
         private const int NUM_MATRICES = 5;
 
         private static int[,] array;
@@ -107,6 +107,7 @@
 
             Console.WriteLine("\nThe program has finished.");
             Console.WriteLine($"\nThe total time for all matrices: {totalsw.Elapsed}");
+            Console.WriteLine($"\nThe total Average time was: {totalsw.ElapsedMilliseconds / NUM_MATRICES}(ms)");
         }
 
         public static void SendWork(int worker, int row, int col)

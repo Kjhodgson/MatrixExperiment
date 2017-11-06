@@ -30,7 +30,7 @@
             int result;
             int i = 0;
 
-            int size = 40;
+            int size = 200;
 
             Console.WriteLine("Connected");
             // Do-while loop used for the continous flow of work and calculations.
@@ -39,16 +39,17 @@
 
             try
             {
+
+                byteArray1 = new byte[4];
+                byteArray2 = new byte[4];
+                intArray1 = new int[size];
+                intArray2 = new int[size];
+
                 do
                 {
                     //Console.Write("Waiting for Arrays to work on.. ");
 
-                    byteArray1 = new byte[4];
-                    byteArray2 = new byte[4];
-                    intArray1 = new int[size];
-                    intArray2 = new int[size];
-
-                    iosw.Start();
+                    //iosw.Start();
                     for (i = 0; i < intArray1.Length; i++)
                     {
                         stm.Read(byteArray1, 0, byteArray1.Length);
@@ -59,7 +60,7 @@
                         stm.Read(byteArray2, 0, 4);
                         intArray2[i] = BitConverter.ToInt32(byteArray2, 0);
                     }
-                    iosw.Stop();
+                    //iosw.Stop();
                     //Console.WriteLine("Received array.. beginning calculations...");
 
                     //Console.WriteLine("\nThe first array is as follows: \n");
@@ -75,15 +76,15 @@
                     //}
 
                     //Console.WriteLine("\n\nNow beginning matrix calculation with the two give arrays..");
-                    procsw.Start();
+                    //procsw.Start();
                     result = matrixCalculation(intArray1, intArray2);
-                    procsw.Stop();
+                    //procsw.Stop();
 
                     //Console.WriteLine("The calculation has finished.");
                     //Console.WriteLine("\nNow transmitting results back to master...");
-                    iosw.Start();
+                    //iosw.Start();
                     stm.Write(BitConverter.GetBytes(result), 0, 4);
-                    iosw.Stop();
+                    //iosw.Stop();
                 } while (true); //For now the worker will work until death
             }
             catch(IOException e)
