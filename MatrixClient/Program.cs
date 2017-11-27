@@ -30,7 +30,7 @@
             int result;
             int i = 0;
 
-            int size = 200;
+            int size = 100;
 
             Console.WriteLine("Connected");
             // Do-while loop used for the continous flow of work and calculations.
@@ -107,17 +107,16 @@
 
         private static int matrixCalculation(int[] array1, int[] array2)
         {
-            int sum1 = 0;
-            int sum2 = 0;
+            int numberCalculated = 0;
+
 
             for (int i = 0; i < array1.Length; i++)
             {
-                sum1 += array1[i];
-                sum2 += array2[i];
+                numberCalculated += (array1[i] * array2[i]);
             }
             //Console.WriteLine("Calculated: " + (byte)(sum1 * sum2));
             //Console.WriteLine("The result is: " + (sum1 * sum2));
-            return (sum1 * sum2);
+            return numberCalculated;
         }
     }
 }

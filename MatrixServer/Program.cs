@@ -10,7 +10,7 @@
 
     public class Server
     {
-        private const int SIZE = 200;
+        private const int SIZE = 100;
         private const int NUM_MATRICES = 5;
 
         private static int[,] array;
