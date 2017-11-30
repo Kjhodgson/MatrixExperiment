@@ -30,7 +30,7 @@
             int result;
             int i = 0;
 
-            int size = 100;
+            int size = 800;
 
             Console.WriteLine("Connected");
             // Do-while loop used for the continous flow of work and calculations.
@@ -54,12 +54,10 @@
                     {
                         stm.Read(byteArray1, 0, byteArray1.Length);
                         intArray1[i] = BitConverter.ToInt32(byteArray1, 0);
-                    }
-                    for (i = 0; i < intArray1.Length; i++)
-                    {
                         stm.Read(byteArray2, 0, 4);
                         intArray2[i] = BitConverter.ToInt32(byteArray2, 0);
                     }
+
                     //iosw.Stop();
                     //Console.WriteLine("Received array.. beginning calculations...");
 
@@ -100,9 +98,6 @@
             Console.WriteLine("Finished all work.");
             Console.WriteLine($"Total time spent on IO: {iosw.Elapsed}");
             Console.WriteLine($"Total time spent on Processing: {procsw.Elapsed}");
-
-
-
         }
 
         private static int matrixCalculation(int[] array1, int[] array2)
@@ -114,8 +109,6 @@
             {
                 numberCalculated += (array1[i] * array2[i]);
             }
-            //Console.WriteLine("Calculated: " + (byte)(sum1 * sum2));
-            //Console.WriteLine("The result is: " + (sum1 * sum2));
             return numberCalculated;
         }
     }

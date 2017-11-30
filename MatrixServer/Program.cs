@@ -10,7 +10,7 @@
 
     public class Server
     {
-        private const int SIZE = 100;
+        private const int SIZE = 800;
         private const int NUM_MATRICES = 5;
 
         private static int[,] array;
@@ -44,7 +44,7 @@
             {
                 //Console.WriteLine("Creating the Array to be calculated....");
 
-                Random rand = new Random();
+                Random rand = new Random(100);
 
                 array = new int[SIZE, SIZE];
                 completedArray = new int[SIZE, SIZE];
@@ -52,7 +52,7 @@
                 {
                     for (int j = 0; j < SIZE; j++)
                     {
-                        array[i, j] = rand.Next(1, 4);
+                        array[i, j] = rand.Next(2, 50);
                     }
 
                 }
@@ -122,11 +122,8 @@
             {
                 // Console.WriteLine("Sending this row number to worker " +worker + ": " +  array[i, col]);
                 mySocketArray[worker].Send(BitConverter.GetBytes(array[i, col]));
+                mySocketArray[worker].Send(BitConverter.GetBytes(array[row, i]));
                 //Console.WriteLine("Worker " + worker + " should have recieved: " + BitConverter.ToInt32(test, 0));
-            }
-            for (int j = 0; j < SIZE; j++)
-            {
-                mySocketArray[worker].Send(BitConverter.GetBytes(array[row, j]));
             }
 
             //Console.WriteLine("Waiting to recieve completed work....");
